@@ -1,0 +1,22 @@
+{
+    "name": "@eva01/core",
+    "version": "0.1.0",
+    "description": "Core engine for AI-assisted case intake and decision support",
+    "license": "MIT",
+    "type": "module",
+    "main": "./dist/index.js",
+    "types": "./dist/index.d.ts",
+    "files": [
+        "dist"
+    ],
+    "scripts": {
+        "build": "tsc -p tsconfig.json",
+        "test": "vitest run -c vitest.config.ts",
+        "test:watch": "vitest -c vitest.config.ts",
+        "test:coverage": "vitest run -c vitest.config.ts --coverage"
+    },
+    "dependencies": {},
+    "devDependencies": {
+        "typescript": "^5.3.0"
+    }
+}

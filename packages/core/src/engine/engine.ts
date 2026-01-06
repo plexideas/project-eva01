@@ -1,7 +1,7 @@
 import { CaseCore } from "../domain/case";
 import { CaseEvent } from "../domain/event";
 import { ActorRef, Id, ISODateTime } from "../shared/types";
-import { CaseState, Transition, WorkflowDefinition } from "./types";
+import { CaseState, Transition, WorkflowDefinition } from "../workflow/types";
 
 type TransitionError =
   | { code: "unknown_state"; state: string }
@@ -27,19 +27,19 @@ type ApplyTransitionResult =
       reason: TransitionError;
     };
 
-type WorkflowEngineDeps = {
+type EngineDeps = {
   now: () => ISODateTime;
   newId: () => Id;
 };
 
-export class WorkflowEngine {
+export class Engine {
   private workflowDefinition: WorkflowDefinition;
   private now: () => ISODateTime;
   private newId: () => Id;
 
   public constructor(
     workflowDefinition: WorkflowDefinition,
-    deps: WorkflowEngineDeps
+    deps: EngineDeps
   ) {
     this.workflowDefinition = workflowDefinition;
     this.now = deps.now;

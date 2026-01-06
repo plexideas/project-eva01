@@ -1,7 +1,8 @@
 {
+  "private": true,
   "name": "project-eva01",
-  "version": "1.0.0",
-  "description": "UNSETED",
+  "version": "0.0.0",
+  "description": "AI-assisted case intake and decision support engine",
   "homepage": "https://github.com/plexideas/project-eva01#readme",
   "bugs": {
     "url": "https://github.com/plexideas/project-eva01/issues"
@@ -10,7 +11,7 @@
     "type": "git",
     "url": "git+https://github.com/plexideas/project-eva01.git"
   },
-  "license": "ISC",
+  "license": "MIT",
   "author": "plexideas@gmail.com",
   "type": "commonjs",
   "main": "index.js",
@@ -18,6 +19,19 @@
     "doc": "docs"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  }
+    "test": "npm -w @eva01/core test",
+    "test:watch": "npm -w @eva01/core test:watch",
+    "test:coverage": "npm -w @eva01/core test:coverage",
+    "lint": "echo \"no lint yet\"",
+    "build": "npm -w @eva01/core run build",
+    "clean": "rm -rf node_modules packages/*/node_modules"
+  },
+  "devDependencies": {
+    "@vitest/coverage-v8": "^4.0.16",
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.16"
+  },
+  "workspaces": [
+    "packages/*"
+  ]
 }
