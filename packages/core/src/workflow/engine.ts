@@ -1,8 +1,11 @@
-import { CaseCore, CaseId } from "../domain/case";
-import { CaseEvent, CaseEventId } from "../domain/event";
-import { ActorRef } from "../shared/types";
-import { genererateId, getCurrentISODateTime } from "../shared/utils";
+import { CaseCore } from "../domain/case";
+import { CaseEvent } from "../domain/event";
+import { ActorRef, Id, ISODateTime } from "../shared/types";
 import { CaseState, Transition, WorkflowDefinition } from "./types";
+
+type TransitionError =
+  | { code: "unknown_state"; state: string }
+  | { code: "unknown_transition"; from: string; to: string };
 
 type ValidateTransitionResult =
   | {
@@ -10,7 +13,7 @@ type ValidateTransitionResult =
     }
   | {
       ok: false;
-      reason: string;
+      reason: TransitionError;
     };
 
 type ApplyTransitionResult =
@@ -21,31 +24,26 @@ type ApplyTransitionResult =
     }
   | {
       ok: false;
-      reason: string;
+      reason: TransitionError;
     };
 
+type WorkflowEngineDeps = {
+  now: () => ISODateTime;
+  newId: () => Id;
+};
+
 export class WorkflowEngine {
-  static #instance: WorkflowEngine;
-
   private workflowDefinition: WorkflowDefinition;
+  private now: () => ISODateTime;
+  private newId: () => Id;
 
-  private constructor(workflowDefinition: WorkflowDefinition) {
+  public constructor(
+    workflowDefinition: WorkflowDefinition,
+    deps: WorkflowEngineDeps
+  ) {
     this.workflowDefinition = workflowDefinition;
-  }
-
-  public static init(workflowDefinition: WorkflowDefinition): WorkflowEngine {
-    if (!WorkflowEngine.#instance) {
-      WorkflowEngine.#instance = new WorkflowEngine(workflowDefinition);
-    }
-
-    return WorkflowEngine.#instance;
-  }
-
-  public static getInstance(): WorkflowEngine {
-    if (!WorkflowEngine.#instance) {
-      throw new Error("Engine not initialized. Call Engine.init() first.");
-    }
-    return WorkflowEngine.#instance;
+    this.now = deps.now;
+    this.newId = deps.newId;
   }
 
   public validateTransition(
@@ -53,10 +51,10 @@ export class WorkflowEngine {
     to: CaseState
   ): ValidateTransitionResult {
     if (!this.workflowDefinition.states.includes(from)) {
-      return { ok: false, reason: `Invalid from state: ${from}` };
+      return { ok: false, reason: { code: "unknown_state", state: from } };
     }
     if (!this.workflowDefinition.states.includes(to)) {
-      return { ok: false, reason: `Invalid to state: ${to}` };
+      return { ok: false, reason: { code: "unknown_state", state: to } };
     }
     if (
       !this.workflowDefinition.transitions.some(
@@ -65,7 +63,7 @@ export class WorkflowEngine {
     ) {
       return {
         ok: false,
-        reason: `No valid transition from ${from} to ${to}`,
+        reason: { code: "unknown_transition", from, to },
       };
     }
     return { ok: true };
@@ -76,6 +74,17 @@ export class WorkflowEngine {
     transition: Transition,
     actor: ActorRef
   ): ApplyTransitionResult {
+    if (currentCase.state !== transition.from) {
+      return {
+        ok: false,
+        reason: {
+          code: "unknown_transition",
+          from: currentCase.state,
+          to: transition.to,
+        },
+      };
+    }
+
     const validation = this.validateTransition(
       currentCase.state,
       transition.to
@@ -88,18 +97,20 @@ export class WorkflowEngine {
       };
     }
 
+    const ts = this.now();
+
     const nextCase: CaseCore = {
       ...currentCase,
       state: transition.to,
-      updatedAt: getCurrentISODateTime(),
+      updatedAt: ts,
     };
 
     const event: CaseEvent = {
-      id: genererateId<CaseEventId>(),
+      id: this.newId(),
       caseId: currentCase.id,
       type: "case.state.changed",
       actor,
-      createdAt: getCurrentISODateTime(),
+      createdAt: ts,
       payload: {
         from: currentCase.state,
         to: transition.to,
