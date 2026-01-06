@@ -1,13 +1,8 @@
-import { c } from "@vitest/runner/dist/tasks.d-BUa1HjoW.js";
 import { CaseCore } from "../domain/case";
 import { CaseEvent } from "../domain/event";
+import { FieldValue } from "../schema/types";
 import { ActorRef, Id, ISODateTime } from "../shared/types";
-import {
-  CaseState,
-  Transition,
-  TransitionId,
-  WorkflowDefinition,
-} from "../workflow/types";
+import { CaseState, TransitionId, WorkflowDefinition } from "../workflow/types";
 
 type FieldUpdateError =
   | { code: "UNKNOWN_FIELD"; key: string }
@@ -119,8 +114,8 @@ export class Engine {
         ok: false,
         reason: {
           code: "STATE_MISMATCH",
-          expected: currentCase.state,
-          actual: transition.from,
+          expected: transition.from,
+          actual: currentCase.state,
         },
       };
     }
@@ -168,17 +163,10 @@ export class Engine {
   public applyFieldUpdate(
     currentCase: CaseCore,
     key: string,
-    nextValue: unknown,
+    nextValue: FieldValue,
     actor: ActorRef
   ): FieldUpdateResult {
     const previousValue = currentCase.fields[key];
-
-    if (!currentCase.fields.hasOwnProperty(key)) {
-      return {
-        ok: false,
-        reason: { code: "UNKNOWN_FIELD", key },
-      };
-    }
 
     if (Object.is(previousValue, nextValue)) {
       return {
