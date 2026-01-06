@@ -1,5 +1,5 @@
 import { FieldValue } from "../schema/types";
-import { Id, ISODateString } from "../shared/types";
+import { Id, ISODateTime } from "../shared/types";
 import { CaseState } from "../workflow/types";
 
 export type CaseId = Id;
@@ -10,6 +10,6 @@ export type CaseCore = {
   description: string;
   state: CaseState;
   fields: Record<string, FieldValue>;
-  createdAt: ISODateString;
-  updatedAt: ISODateString;
+  createdAt: ISODateTime;
+  updatedAt: ISODateTime;
 };

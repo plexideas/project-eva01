@@ -1,15 +1,17 @@
-import { ActorRef, Id, ISODateString } from "../shared/types";
+import { ActorRef, Id, ISODateTime } from "../shared/types";
 import { CaseState } from "../workflow/types";
+import { CaseId } from "./case";
+import { SuggestionKind } from "./suggestion";
 
 export type CaseEventId = Id;
 
 export type CaseEvent =
   | {
       id: CaseEventId;
-      caseId: Id;
+      caseId: CaseId;
       type: "case.created";
       actor: ActorRef;
-      createdAt: ISODateString;
+      createdAt: ISODateTime;
       payload: {
         title: string;
         description: string;
@@ -17,10 +19,10 @@ export type CaseEvent =
     }
   | {
       id: CaseEventId;
-      caseId: Id;
+      caseId: CaseId;
       type: "case.field.updated";
       actor: ActorRef;
-      createdAt: ISODateString;
+      createdAt: ISODateTime;
       payload: {
         key: string;
         previous: unknown;
@@ -29,10 +31,10 @@ export type CaseEvent =
     }
   | {
       id: CaseEventId;
-      caseId: Id;
+      caseId: CaseId;
       type: "case.state.changed";
       actor: ActorRef;
-      createdAt: ISODateString;
+      createdAt: ISODateTime;
       payload: {
         from: CaseState;
         to: CaseState;
@@ -42,21 +44,21 @@ export type CaseEvent =
     }
   | {
       id: CaseEventId;
-      caseId: Id;
+      caseId: CaseId;
       type: "suggestion.proposed";
       actor: ActorRef;
-      createdAt: ISODateString;
+      createdAt: ISODateTime;
       payload: {
-        suggestionId: Id;
+        suggestionId: SuggestionKind;
         kind: string;
       };
     }
   | {
       id: CaseEventId;
-      caseId: Id;
+      caseId: CaseId;
       type: "suggestion.resolved";
       actor: ActorRef; // human
-      createdAt: ISODateString;
+      createdAt: ISODateTime;
       payload: {
         suggestionId: Id;
         status: "accepted" | "rejected";

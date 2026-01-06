@@ -1,6 +1,6 @@
 export type Id = string;
 
-export type ISODateString = string;
+export type ISODateTime = string;
 
 export type ActorType = "human" | "system" | "ai";
 

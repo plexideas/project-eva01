@@ -1,3 +1,5 @@
+import { ISODateTime } from "../shared/types";
+
 export type FieldType =
   | "string"
   | "number"
@@ -11,9 +13,8 @@ export type FieldValue =
   | number
   | boolean
   | null
-  | { kind: "date"; value: string } // ISO date
-  | { kind: "enum"; value: string }
-  | { kind: "json"; value: unknown };
+  | ISODateTime
+  | unknown;
 
 export type FieldConstraint =
   | { type: "minLength"; value: number }

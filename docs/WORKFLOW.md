@@ -20,3 +20,12 @@
 - `resolved -> closed`
 - `triage -> closed` (если “не наш кейс / дубликат”)
 - `in_progress -> triage` (если требуется переквалификация)
+
+|from|to|who|why|
+|---|---|---|---|
+|`new`|`triage`|human|???|
+|`triage`|`in_progress`|???|???|
+|`in_progress`|`resolved`|???|???|
+|`resolved`|`closed`|???|???|
+|`triage`|`closed`|???|???|
+|`in_progress`|`triage`|???|???|

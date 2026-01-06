@@ -1,4 +1,5 @@
-import { ActorRef, Id, ISODateString } from "../shared/types";
+import { ActorRef, Id, ISODateTime } from "../shared/types";
+import { CaseId } from "./case";
 
 export type SuggestionId = Id;
 
@@ -12,12 +13,12 @@ export type SuggestionStatus = "proposed" | "accepted" | "rejected";
 
 export type Suggestion = {
   id: SuggestionId;
-  caseId: Id;
+  caseId: CaseId;
   kind: SuggestionKind;
   proposedValue: unknown;
   confidence?: number;
   rationale?: string;
   status: SuggestionStatus;
-  createdAt: ISODateString;
+  createdAt: ISODateTime;
   createdBy: ActorRef;
 };
