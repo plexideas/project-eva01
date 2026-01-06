@@ -1,0 +1,23 @@
+{
+  "name": "project-eva01",
+  "version": "1.0.0",
+  "description": "UNSETED",
+  "homepage": "https://github.com/plexideas/project-eva01#readme",
+  "bugs": {
+    "url": "https://github.com/plexideas/project-eva01/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/plexideas/project-eva01.git"
+  },
+  "license": "ISC",
+  "author": "plexideas@gmail.com",
+  "type": "commonjs",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  }
+}
