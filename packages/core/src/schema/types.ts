@@ -1,4 +1,4 @@
-import { ISODateTime } from "../shared/types";
+import { ISODateTime, JsonValue } from "../shared/types";
 
 export type FieldType =
   | "string"
@@ -14,7 +14,7 @@ export type FieldValue =
   | boolean
   | null
   | ISODateTime
-  | unknown;
+  | JsonValue;
 
 export type FieldConstraint =
   | { type: "minLength"; value: number }

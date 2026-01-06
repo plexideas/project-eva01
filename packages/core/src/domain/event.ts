@@ -1,7 +1,7 @@
 import { ActorRef, Id, ISODateTime } from "../shared/types";
 import { CaseState } from "../workflow/types";
 import { CaseId } from "./case";
-import { SuggestionKind } from "./suggestion";
+import { SuggestionId, SuggestionKind } from "./suggestion";
 
 export type CaseEventId = Id;
 
@@ -49,8 +49,8 @@ export type CaseEvent =
       actor: ActorRef;
       createdAt: ISODateTime;
       payload: {
-        suggestionId: SuggestionKind;
-        kind: string;
+        suggestionId: SuggestionId;
+        kind: SuggestionKind;
       };
     }
   | {
@@ -60,7 +60,7 @@ export type CaseEvent =
       actor: ActorRef; // human
       createdAt: ISODateTime;
       payload: {
-        suggestionId: Id;
+        suggestionId: SuggestionId;
         status: "accepted" | "rejected";
       };
     };
