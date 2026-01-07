@@ -71,7 +71,17 @@ describe("applyFieldUpdate", () => {
     newId: () => "evt-1",
   };
 
-  const engine = new Engine(wf, deps);
+  const strictEngine = new Engine(wf, deps, {
+    fields: [
+      { key: "category", type: "string", required: false },
+      {
+        key: "priority",
+        type: "string",
+        required: true,
+      },
+    ],
+    unknownFieldPolicy: "reject",
+  });
 
   const actor: ActorRef = { type: "human", id: "u1" };
 
@@ -86,7 +96,7 @@ describe("applyFieldUpdate", () => {
   };
 
   it("updates field, bumps updatedAt and emits event", () => {
-    const r = engine.applyFieldUpdate(c, "category", "access", actor);
+    const r = strictEngine.applyFieldUpdate(c, "category", "access", actor);
     expect(r.ok).toBe(true);
     if (!r.ok) return;
 
@@ -105,9 +115,57 @@ describe("applyFieldUpdate", () => {
   });
 
   it("returns NO_CHANGE when value is identical", () => {
-    const r = engine.applyFieldUpdate(c, "category", "billing", actor);
+    const r = strictEngine.applyFieldUpdate(c, "category", "billing", actor);
     expect(r.ok).toBe(false);
     if (r.ok) return;
     expect(r.reason.code).toBe("NO_CHANGE");
+  });
+
+  it("return UNKNOWN_FIELD for unknown field", () => {
+    const r = strictEngine.applyFieldUpdate(c, "unknown", "value", actor);
+    expect(r.ok).toBe(false);
+    if (r.ok) return;
+    expect(r.reason.code).toBe("UNKNOWN_FIELD");
+    expect(r.reason.key).toBe("unknown");
+  });
+
+  it("returns REQUIRED_FIELD_CANNOT_BE_NULL for null on required field", () => {
+    const r = strictEngine.applyFieldUpdate(c, "priority", null, actor);
+    expect(r.ok).toBe(false);
+    if (r.ok) return;
+    expect(r.reason.code).toBe("REQUIRED_FIELD_CANNOT_BE_NULL");
+    expect(r.reason.key).toBe("priority");
+  });
+
+  it("allows null on non-required field", () => {
+    const r = strictEngine.applyFieldUpdate(c, "category", null, actor);
+    expect(r.ok).toBe(true);
+  });
+
+  it("return INVALID_FIELD_TYPE for wrong type", () => {
+    const r = strictEngine.applyFieldUpdate(c, "priority", 123, actor);
+    expect(r.ok).toBe(false);
+    if (r.ok) return;
+    expect(r.reason.code).toBe("INVALID_FIELD_TYPE");
+    expect(r.reason.key).toBe("priority");
+  });
+
+  it("allows unknown fields when policy is 'allow'", () => {
+    const lenientEngine = new Engine(wf, deps, {
+      fields: [],
+      unknownFieldPolicy: "allow",
+    });
+
+    const r = lenientEngine.applyFieldUpdate(c, "unknownField", 42, actor);
+    expect(r.ok).toBe(true);
+  });
+
+  it("allows unknown fields when policy is not set", () => {
+    const lenientEngine = new Engine(wf, deps, {
+      fields: [],
+    });
+
+    const r = lenientEngine.applyFieldUpdate(c, "unknownField", 42, actor);
+    expect(r.ok).toBe(true);
   });
 });

@@ -1,6 +1,7 @@
 import { CaseCore } from "../domain/case";
 import { CaseEvent } from "../domain/event";
-import { FieldValue } from "../schema/types";
+import { FieldDefinition, FieldValue } from "../schema/types";
+import { isValueOfType } from "../schema/validation";
 import { ActorRef, Id, ISODateTime } from "../shared/types";
 import { CaseState, TransitionId, WorkflowDefinition } from "../workflow/types";
 
@@ -56,15 +57,74 @@ type EngineDeps = {
   newId: () => Id;
 };
 
+type EngineOptions = {
+  fields?: FieldDefinition[];
+  unknownFieldPolicy?: "allow" | "reject";
+};
+
 export class Engine {
   private workflowDefinition: WorkflowDefinition;
   private now: () => ISODateTime;
   private newId: () => Id;
+  private fields: FieldDefinition[] = [];
+  private unknownFieldPolicy: "allow" | "reject" = "allow";
 
-  public constructor(workflowDefinition: WorkflowDefinition, deps: EngineDeps) {
+  public constructor(
+    workflowDefinition: WorkflowDefinition,
+    deps: EngineDeps,
+    options?: EngineOptions
+  ) {
     this.workflowDefinition = workflowDefinition;
     this.now = deps.now;
     this.newId = deps.newId;
+    if (options?.fields) {
+      this.fields = options.fields;
+    }
+    if (options?.unknownFieldPolicy) {
+      this.unknownFieldPolicy = options.unknownFieldPolicy;
+    }
+  }
+
+  private validateFieldUpdate(
+    key: string,
+    value: FieldValue
+  ): { ok: true } | { ok: false; reason: FieldUpdateError } {
+    const fieldDef = this.fields.find((f) => f.key === key);
+
+    if (!fieldDef) {
+      if (this.unknownFieldPolicy === "reject") {
+        return { ok: false, reason: { code: "UNKNOWN_FIELD", key } };
+      } else {
+        return { ok: true };
+      }
+    }
+
+    if (value === null || value === undefined) {
+      if (fieldDef.required) {
+        return {
+          ok: false,
+          reason: { code: "REQUIRED_FIELD_CANNOT_BE_NULL", key },
+        };
+      } else {
+        return { ok: true };
+      }
+    }
+
+    if (isValueOfType(value, fieldDef.type) === false) {
+      return {
+        ok: false,
+        reason: {
+          code: "INVALID_FIELD_TYPE",
+          key,
+          expected: fieldDef.type,
+          actual: typeof value,
+        },
+      };
+    }
+
+    // Additional type and constraint validations can be added here
+
+    return { ok: true };
   }
 
   public validateTransition(
@@ -126,10 +186,7 @@ export class Engine {
     );
 
     if (!validation.ok) {
-      return {
-        ok: false,
-        reason: validation.reason,
-      };
+      return validation;
     }
 
     const ts = this.now();
@@ -166,6 +223,12 @@ export class Engine {
     nextValue: FieldValue,
     actor: ActorRef
   ): FieldUpdateResult {
+    const validation = this.validateFieldUpdate(key, nextValue);
+
+    if (!validation.ok) {
+      return validation;
+    }
+
     const previousValue = currentCase.fields[key];
 
     if (Object.is(previousValue, nextValue)) {
